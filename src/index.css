@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  ── Polices de marque ─────────────────────────────────────────────────────────
+  Pour activer Franklin Gothic Demi Cond et Agency FB en web fonts :
+  1. Placer les fichiers .woff2 dans public/fonts/
+  2. Décommenter les @font-face ci-dessous
+
+  @font-face {
+    font-family: 'Franklin Gothic Demi Cond';
+    src: url('/fonts/franklin-gothic-demi-cond.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Agency FB';
+    src: url('/fonts/agency-fb.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+  }
+*/
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-stone-50 text-stone-900 antialiased;
+    scrollbar-color: #d6d3d1 #f5f5f4;
+  }
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
