@@ -1,0 +1,6 @@
+export const GAME_CONFIG = {
+  GAME_DURATION_SECONDS: 120,
+  FEEDBACK_DURATION_MS: 900,
+  LEADERBOARD_TOP_N: 5,
+  LEADERBOARD_STORAGE_KEY: 'grand-quiz-leaderboard',
+}

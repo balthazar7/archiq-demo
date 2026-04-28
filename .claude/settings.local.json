@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add *)",
+      "Bash(git reset *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(npm install *)",
+      "Bash(git -C \"d:/13_Jeux de carte archi/NUMERIQUE 2/quiz-demo\" status)"
+    ]
+  }
+}

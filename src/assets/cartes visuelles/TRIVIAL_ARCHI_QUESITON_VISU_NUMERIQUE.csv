@@ -1,0 +1,16 @@
+id,catégorie,image,question,correct_answer,wrong_answer_1,wrong_answer_2
+1,Visuels,1.png,Quel bâtiment est représenté par ce plan ?,La Bourse de Commerce de Tadao Ando,Le Panthéon de Paris,La Halle au Blé de Bélanger
+2,Visuels,2.png,Qui suis-je ?,Frank Lloyd Wright,Louis Sullivan,Richard Neutra
+3,Visuels,1.png,Qui est l'architecte de ce bâtiment ?,Jun'ya Ishigami,Kengo Kuma,Sou Fujimoto
+4,Visuels,2.png,Qui est l'architecte de ce bâtiment ?,Alvaro Siza,Eduardo Souto de Moura,Rafael Moneo
+5,Visuels,1.png,Quel bâtiment est représenté par ce plan ?,La Farnsworth House,La Villa Savoye,La Glass House de Philip Johnson
+6,Visuels,2.png,Quel est le nom de cette chauffeuse ?,La Chaise Barcelona,La LC4 de Le Corbusier,La Wassily de Marcel Breuer
+7,Visuels,1.png,Comment se nomme cette partie d'église ?,Le transept,La nef,Le déambulatoire
+8,Visuels,2.png,Quel bâtiment est représenté par ce plan ?,Le palais bulle,La maison Bloc,La villa Arpel
+9,Visuels,1.png,Qui m'a dessiné ?,Oscar Niemeyer,Lúcio Costa,Affonso Eduardo Reidy
+10,Visuels,2.png,Comment se nomme cet élément de temple grec ?,Un triglyphe,Une métope,Un acrotère
+11,Visuels,1.png,Quel château se dresse ici ?,Château de Chambord,Château de Chenonceau,Château d'Azay-le-Rideau
+12,Visuels,2.png,Quel parc est représenté ici ?,Little Island de Thomas Heatherwick,The High Line de Diller Scofidio + Renfro,Hudson Yards Vessel
+13,Visuels,1.png,De quel bâtiment est issu ce détail ?,L'Institut du Monde Arabe,La Fondation Cartier,La Philharmonie de Paris
+14,Visuels,2.png,Quel designer conçoit cette lampe ?,Ingo Maurer,Achille Castiglioni,Gino Sarfatti
+15,Visuels,1.png,Quel architecte a conçu ce plan ?,Renaudie,Émile Aillaud,Georges Candilis
