@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Leaderboard } from './Leaderboard'
 import { PaperGamePromoCard } from './PaperGamePromoCard'
 import { getPlayerRank } from '../utils/leaderboard'
@@ -12,7 +13,13 @@ export function ResultScreen({ playerName, score, leaderboardKey, onPlayAgain, o
   const medal   = score >= 10 ? '🏆' : score >= 6 ? '🥈' : score >= 3 ? '🥉' : '💪'
   const message = score >= 10 ? 'Impressionnant !' : score >= 6 ? 'Très bien joué !' : score >= 3 ? 'Pas mal !' : 'Continuez à vous entraîner !'
 
-  const { rank, total } = getPlayerRank(score)
+  const [rankData, setRankData] = useState({ rank: 1, total: 0 })
+
+  useEffect(() => {
+    getPlayerRank(score).then(setRankData)
+  }, [score])
+
+  const { rank, total } = rankData
 
   return (
     <div className="flex flex-col items-center justify-start px-4 py-10 min-h-full bg-stone-50">

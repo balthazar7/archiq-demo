@@ -21,9 +21,9 @@ export default function App() {
     setPhase('playing')
   }, [])
 
-  const handleGameEnd = useCallback((score) => {
+  const handleGameEnd = useCallback(async (score) => {
     setLastScore(score)
-    addScore({ playerName, score, categoryId: 'demo', categoryName: 'Démo' })
+    await addScore({ playerName, score })
     setLeaderboardKey((k) => k + 1)
     setPhase('results')
   }, [playerName])

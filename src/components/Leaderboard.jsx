@@ -9,8 +9,12 @@ export function Leaderboard({ refreshKey = 0 }) {
   const [totalGames, setTotalGames] = useState(0)
 
   useEffect(() => {
-    setEntries(getLeaderboard())
-    setTotalGames(getTotalGamesCount())
+    async function load() {
+      const [data, count] = await Promise.all([getLeaderboard(), getTotalGamesCount()])
+      setEntries(data)
+      setTotalGames(count)
+    }
+    load()
   }, [refreshKey])
 
   return (
@@ -39,8 +43,10 @@ export function Leaderboard({ refreshKey = 0 }) {
                 {MEDALS[i] ?? `#${i + 1}`}
               </span>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-stone-900 truncate text-sm">{entry.playerName}</p>
-                <p className="text-xs text-stone-400 truncate">{entry.categoryName}</p>
+                <p className="font-semibold text-stone-900 truncate text-sm">{entry.pseudo}</p>
+                <p className="text-xs text-stone-400 truncate">
+                  {new Date(entry.created_at).toLocaleDateString('fr-FR')}
+                </p>
               </div>
               <span className="font-black text-lg flex-shrink-0" style={{ color: ACCENT_COLOR }}>
                 {entry.score}

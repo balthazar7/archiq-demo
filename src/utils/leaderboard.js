@@ -1,44 +1,37 @@
-import { GAME_CONFIG } from '../config'
+import { supabase } from '../supabaseClient'
 
-const TOP_KEY   = GAME_CONFIG.LEADERBOARD_STORAGE_KEY
-const ALL_KEY   = GAME_CONFIG.LEADERBOARD_STORAGE_KEY + '_all'
-const COUNT_KEY = GAME_CONFIG.LEADERBOARD_STORAGE_KEY + '_count'
-
-export function getAllEntries() {
-  try {
-    const raw = localStorage.getItem(ALL_KEY)
-    if (!raw) return []
-    return JSON.parse(raw)
-  } catch {
-    return []
-  }
+export async function getLeaderboard() {
+  const { data, error } = await supabase
+    .from('scores')
+    .select('*')
+    .order('score', { ascending: false })
+    .limit(5)
+  if (error) console.error('getLeaderboard:', error)
+  return data ?? []
 }
 
-export function getLeaderboard() {
-  return getAllEntries().slice(0, GAME_CONFIG.LEADERBOARD_TOP_N)
+export async function getTotalGamesCount() {
+  const { count, error } = await supabase
+    .from('scores')
+    .select('*', { count: 'exact', head: true })
+  if (error) console.error('getTotalGamesCount:', error)
+  return count ?? 0
 }
 
-export function getTotalGamesCount() {
-  return parseInt(localStorage.getItem(COUNT_KEY) ?? '0', 10)
+export async function getPlayerRank(score) {
+  const [{ count: aboveCount }, total] = await Promise.all([
+    supabase
+      .from('scores')
+      .select('*', { count: 'exact', head: true })
+      .gt('score', score),
+    getTotalGamesCount(),
+  ])
+  return { rank: (aboveCount ?? 0) + 1, total }
 }
 
-export function getPlayerRank(score) {
-  const all   = getAllEntries()
-  const total = getTotalGamesCount()
-  const rank  = all.filter((e) => e.score > score).length + 1
-  return { rank, total }
-}
-
-export function addScore(entry) {
-  const existing = getAllEntries()
-  const newEntry = {
-    ...entry,
-    id: crypto.randomUUID(),
-    date: new Date().toLocaleDateString('fr-FR'),
-  }
-  const sorted = [...existing, newEntry].sort((a, b) => b.score - a.score)
-
-  localStorage.setItem(ALL_KEY, JSON.stringify(sorted))
-  localStorage.setItem(TOP_KEY, JSON.stringify(sorted.slice(0, GAME_CONFIG.LEADERBOARD_TOP_N)))
-  localStorage.setItem(COUNT_KEY, String(getTotalGamesCount() + 1))
+export async function addScore({ playerName, score }) {
+  const { error } = await supabase
+    .from('scores')
+    .insert({ pseudo: playerName, score })
+  if (error) console.error('addScore:', error)
 }
