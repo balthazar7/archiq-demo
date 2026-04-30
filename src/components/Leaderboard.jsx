@@ -49,7 +49,7 @@ export function Leaderboard({ refreshKey = 0 }) {
                 </p>
               </div>
               <span className="font-black text-lg flex-shrink-0" style={{ color: ACCENT_COLOR }}>
-                {entry.score}
+                {Number(entry.score).toFixed(1)}
               </span>
             </li>
           ))}

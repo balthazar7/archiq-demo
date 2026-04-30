@@ -13,8 +13,12 @@ function shuffleArray(arr) {
   return a
 }
 
+function fmtCombo(c) {
+  return `×${parseFloat(c.toFixed(2))}`
+}
+
 export function GameScreen({ playerName, onGameEnd }) {
-  const { currentQuestion, score, timeLeft, feedback, submitAnswer } =
+  const { currentQuestion, score, timeLeft, feedback, submitAnswer, combo, comboLost } =
     useGameLogic(playerName, onGameEnd)
 
   const [selectedAnswer, setSelectedAnswer] = useState(null)
@@ -28,8 +32,8 @@ export function GameScreen({ playerName, onGameEnd }) {
   useMemo(() => { setSelectedAnswer(null) }, [currentQuestion.id]) // eslint-disable-line
 
   const timerPct = (timeLeft / GAME_CONFIG.GAME_DURATION_SECONDS) * 100
-  const timerBarColor   = timeLeft > 40 ? '#22c55e' : timeLeft > 20 ? '#f59e0b' : '#ef4444'
-  const timerTextColor  = timeLeft > 40 ? 'text-green-600' : timeLeft > 20 ? 'text-amber-600' : 'text-red-500'
+  const timerBarColor  = timeLeft > 40 ? '#22c55e' : timeLeft > 20 ? '#f59e0b' : '#ef4444'
+  const timerTextColor = timeLeft > 40 ? 'text-green-600' : timeLeft > 20 ? 'text-amber-600' : 'text-red-500'
 
   const currentCategory = categories.find((c) => c.id === currentQuestion.categoryId)
   const meta = currentQuestion.categoryId ? CATEGORY_META[currentQuestion.categoryId] : null
@@ -46,18 +50,32 @@ export function GameScreen({ playerName, onGameEnd }) {
   return (
     <div className="relative flex flex-col h-full min-h-[500px] bg-stone-50">
 
-      {/* ── Header : timer + score ── */}
+      {/* ── Header : combo + timer + score ── */}
       <div className="flex-shrink-0 px-4 pt-4 pb-3 bg-white border-b border-stone-200 shadow-sm">
         <div className="flex items-center justify-between mb-3 max-w-2xl mx-auto w-full">
-          <div className="w-20" />
+
+          {/* Combo */}
+          <div className="w-20 text-left">
+            <p className="text-stone-400 text-xs uppercase tracking-widest">Combo</p>
+            <p className={`font-black text-xl tabular-nums leading-none mt-0.5 ${combo > 1 ? 'text-amber-500' : 'text-stone-300'}`}>
+              {combo > 1 ? '🔥 ' : ''}{fmtCombo(combo)}
+            </p>
+          </div>
+
+          {/* Timer */}
           <span className={`font-mono font-bold text-3xl tabular-nums ${timerTextColor} ${timeLeft <= 10 ? 'animate-pulse' : ''}`}>
             {timeLeft}s
           </span>
+
+          {/* Score */}
           <div className="text-right w-20">
             <p className="text-stone-400 text-xs uppercase tracking-widest">Score</p>
-            <p className="font-black text-2xl tabular-nums" style={{ color: ACCENT_COLOR }}>{score}</p>
+            <p className="font-black text-2xl tabular-nums" style={{ color: ACCENT_COLOR }}>
+              {score.toFixed(1)}
+            </p>
           </div>
         </div>
+
         <div className="max-w-2xl mx-auto w-full bg-stone-200 rounded-full h-1.5 overflow-hidden">
           <div
             className="h-1.5 rounded-full transition-all duration-1000 ease-linear"
@@ -146,9 +164,18 @@ export function GameScreen({ playerName, onGameEnd }) {
 
           {/* Message feedback */}
           {feedback && (
-            <p className={`text-center mt-4 font-bold text-lg ${feedback === 'correct' ? 'text-green-600' : 'text-red-500'}`}>
-              {feedback === 'correct' ? 'Bonne réponse !' : 'Mauvaise réponse'}
-            </p>
+            <div className="text-center mt-4">
+              <p className={`font-bold text-lg ${feedback === 'correct' ? 'text-green-600' : 'text-red-500'}`}>
+                {feedback === 'correct'
+                  ? `Bonne réponse ! +${parseFloat((combo - 0.25).toFixed(2))} pt`
+                  : 'Mauvaise réponse −0.23 pt'}
+              </p>
+              {feedback === 'incorrect' && comboLost && (
+                <p className="text-amber-500 font-bold text-sm mt-1 animate-pulse">
+                  💥 Combo perdu !
+                </p>
+              )}
+            </div>
           )}
         </div>
       </div>

@@ -10,9 +10,12 @@ export function useGameLogic(_playerName, onGameEnd) {
   const [timeLeft, setTimeLeft] = useState(GAME_CONFIG.GAME_DURATION_SECONDS)
   const [feedback, setFeedback] = useState(null)
   const [isActive, setIsActive] = useState(true)
+  const [comboCount, setComboCount] = useState(0)
+  const [comboLost, setComboLost] = useState(false)
 
   const scoreRef = useRef(0)
   const isActiveRef = useRef(true)
+  const comboCountRef = useRef(0)
 
   useEffect(() => {
     if (!isActive) return
@@ -36,14 +39,27 @@ export function useGameLogic(_playerName, onGameEnd) {
       const correct = selected === question.correctAnswer
 
       if (correct) {
-        scoreRef.current += 1
-        setScore((s) => s + 1)
+        const multiplier = 1 + comboCountRef.current * 0.25
+        const pts = Math.round(multiplier * 100) / 100
+        scoreRef.current = Math.round((scoreRef.current + pts) * 100) / 100
+        setScore(scoreRef.current)
+        comboCountRef.current += 1
+        setComboCount(comboCountRef.current)
+        setComboLost(false)
+        setFeedback('correct')
+      } else {
+        const wasCombo = comboCountRef.current > 0
+        scoreRef.current = Math.round((scoreRef.current - 0.23) * 100) / 100
+        setScore(scoreRef.current)
+        comboCountRef.current = 0
+        setComboCount(0)
+        setComboLost(wasCombo)
+        setFeedback('incorrect')
       }
-
-      setFeedback(correct ? 'correct' : 'incorrect')
 
       setTimeout(() => {
         setFeedback(null)
+        setComboLost(false)
         setCurrentIndex((i) => i + 1)
       }, GAME_CONFIG.FEEDBACK_DURATION_MS)
     },
@@ -57,5 +73,7 @@ export function useGameLogic(_playerName, onGameEnd) {
     feedback,
     submitAnswer,
     isActive,
+    combo: 1 + comboCount * 0.25,
+    comboLost,
   }
 }
