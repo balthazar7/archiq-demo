@@ -21,7 +21,7 @@ export function Leaderboard({ refreshKey = 0 }) {
     <div className="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm">
       <div className="mb-4">
         <h2 className="text-stone-900 font-bold text-base flex items-center gap-2">
-          🏆 <span>Classement Top 5</span>
+          🏆 <span>Classement Top 10</span>
         </h2>
         {totalGames > 0 && (
           <p className="text-stone-400 text-xs mt-0.5">{totalGames} partie{totalGames > 1 ? 's' : ''} jouée{totalGames > 1 ? 's' : ''}</p>

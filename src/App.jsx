@@ -3,6 +3,7 @@ import { categories } from './data/categories'
 import { BRAND, FONTS, ACCENT_COLOR } from './branding'
 import { GameLayout } from './components/GameLayout'
 import { PlayerNameInput } from './components/PlayerNameInput'
+import { CountdownScreen } from './components/CountdownScreen'
 import { GameScreen } from './components/GameScreen'
 import { ResultScreen } from './components/ResultScreen'
 import { PaperGamePromoCard } from './components/PaperGamePromoCard'
@@ -17,6 +18,10 @@ export default function App() {
 
   const handleNameSubmit = useCallback((name) => {
     setPlayerName(name)
+    setPhase('countdown')
+  }, [])
+
+  const handleCountdownEnd = useCallback(() => {
     setGameKey((k) => k + 1)
     setPhase('playing')
   }, [])
@@ -81,6 +86,11 @@ export default function App() {
       {/* ── Saisie du prénom ── */}
       {phase === 'naming' && (
         <PlayerNameInput onSubmit={handleNameSubmit} onBack={handleHome} />
+      )}
+
+      {/* ── Compte à rebours ── */}
+      {phase === 'countdown' && (
+        <CountdownScreen onEnd={handleCountdownEnd} />
       )}
 
       {/* ── Partie en cours ── */}

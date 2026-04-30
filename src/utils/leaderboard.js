@@ -1,11 +1,12 @@
 import { supabase } from '../supabaseClient'
+import { GAME_CONFIG } from '../config'
 
 export async function getLeaderboard() {
   const { data, error } = await supabase
     .from('scores')
     .select('*')
     .order('score', { ascending: false })
-    .limit(5)
+    .limit(GAME_CONFIG.LEADERBOARD_TOP_N)
   if (error) console.error('getLeaderboard:', error)
   return data ?? []
 }
