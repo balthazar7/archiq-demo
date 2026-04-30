@@ -30,9 +30,9 @@ export async function getPlayerRank(score) {
   return { rank: (aboveCount ?? 0) + 1, total }
 }
 
-export async function addScore({ playerName, score }) {
+export async function addScore({ playerName, nom, agence, score }) {
   const { error } = await supabase
     .from('scores')
-    .insert({ pseudo: playerName, score })
+    .insert({ pseudo: playerName, nom: nom || null, agence: agence || null, score })
   if (error) console.error('addScore:', error)
 }

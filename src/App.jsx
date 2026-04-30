@@ -12,12 +12,16 @@ import { addScore } from './utils/leaderboard'
 export default function App() {
   const [phase, setPhase] = useState('home')
   const [playerName, setPlayerName] = useState('')
+  const [playerNom, setPlayerNom] = useState('')
+  const [playerAgence, setPlayerAgence] = useState('')
   const [lastScore, setLastScore] = useState(0)
   const [leaderboardKey, setLeaderboardKey] = useState(0)
   const [gameKey, setGameKey] = useState(0)
 
-  const handleNameSubmit = useCallback((name) => {
+  const handleNameSubmit = useCallback((name, nom, agence) => {
     setPlayerName(name)
+    setPlayerNom(nom)
+    setPlayerAgence(agence)
     setPhase('countdown')
   }, [])
 
@@ -28,10 +32,10 @@ export default function App() {
 
   const handleGameEnd = useCallback(async (score) => {
     setLastScore(score)
-    await addScore({ playerName, score })
+    await addScore({ playerName, nom: playerNom, agence: playerAgence, score })
     setLeaderboardKey((k) => k + 1)
     setPhase('results')
-  }, [playerName])
+  }, [playerName, playerNom, playerAgence])
 
   const handlePlayAgain = useCallback(() => setPhase('naming'), [])
   const handleHome      = useCallback(() => setPhase('home'),   [])
