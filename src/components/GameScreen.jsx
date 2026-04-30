@@ -71,7 +71,7 @@ export function GameScreen({ playerName, onGameEnd }) {
           <div className="text-right w-20">
             <p className="text-stone-400 text-xs uppercase tracking-widest">Score</p>
             <p className="font-black text-2xl tabular-nums" style={{ color: ACCENT_COLOR }}>
-              {score.toFixed(1)}
+              {score.toFixed(2)}
             </p>
           </div>
         </div>
@@ -167,7 +167,7 @@ export function GameScreen({ playerName, onGameEnd }) {
             <div className="text-center mt-4">
               <p className={`font-bold text-lg ${feedback === 'correct' ? 'text-green-600' : 'text-red-500'}`}>
                 {feedback === 'correct'
-                  ? `Bonne réponse ! +${parseFloat((combo - 0.25).toFixed(2))} pt`
+                  ? `Bonne réponse ! +${parseFloat((combo - 0.15).toFixed(2))} pt`
                   : 'Mauvaise réponse −0.23 pt'}
               </p>
               {feedback === 'incorrect' && comboLost && (

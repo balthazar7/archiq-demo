@@ -39,7 +39,7 @@ export function useGameLogic(_playerName, onGameEnd) {
       const correct = selected === question.correctAnswer
 
       if (correct) {
-        const multiplier = 1 + comboCountRef.current * 0.25
+        const multiplier = 1 + comboCountRef.current * 0.15
         const pts = Math.round(multiplier * 100) / 100
         scoreRef.current = Math.round((scoreRef.current + pts) * 100) / 100
         setScore(scoreRef.current)
@@ -73,7 +73,7 @@ export function useGameLogic(_playerName, onGameEnd) {
     feedback,
     submitAnswer,
     isActive,
-    combo: 1 + comboCount * 0.25,
+    combo: 1 + comboCount * 0.15,
     comboLost,
   }
 }

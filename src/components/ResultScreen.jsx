@@ -34,7 +34,7 @@ export function ResultScreen({ playerName, score, leaderboardKey, onPlayAgain, o
 
           <div className="text-7xl mb-4">{medal}</div>
 
-          <p className="text-6xl font-black tabular-nums mb-2" style={{ color: ACCENT_COLOR }}>{score.toFixed(1)}</p>
+          <p className="text-6xl font-black tabular-nums mb-2" style={{ color: ACCENT_COLOR }}>{score.toFixed(2)}</p>
           <p className="text-stone-500 text-lg mb-1">
             pt{score > 1 ? 's' : ''}
           </p>
