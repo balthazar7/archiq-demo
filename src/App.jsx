@@ -106,6 +106,7 @@ export default function App() {
       {phase === 'results' && (
         <ResultScreen
           playerName={playerName}
+          agence={playerAgence}
           score={lastScore}
           leaderboardKey={leaderboardKey}
           onPlayAgain={handlePlayAgain}
