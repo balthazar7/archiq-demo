@@ -7,6 +7,7 @@ import { CountdownScreen } from './components/CountdownScreen'
 import { GameScreen } from './components/GameScreen'
 import { ResultScreen } from './components/ResultScreen'
 import { PaperGamePromoCard } from './components/PaperGamePromoCard'
+import { ProContactCard } from './components/ProContactCard'
 import { addScore } from './utils/leaderboard'
 
 export default function App() {
@@ -84,6 +85,9 @@ export default function App() {
 
           {/* Encart promo */}
           <PaperGamePromoCard />
+
+          {/* Encart contact pro */}
+          <ProContactCard />
         </div>
       )}
 

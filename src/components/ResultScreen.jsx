@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Leaderboard } from './Leaderboard'
 import { PaperGamePromoCard } from './PaperGamePromoCard'
+import { ProContactCard } from './ProContactCard'
 import { getPlayerRank } from '../utils/leaderboard'
 import { ACCENT_COLOR } from '../branding'
 
@@ -56,23 +57,8 @@ export function ResultScreen({ playerName, agence, score, leaderboardKey, onPlay
         </div>
 
         {/* Encart contact pro */}
-        <div
-          className="mb-6 rounded-2xl p-5 border-2 text-center"
-          style={{ backgroundColor: ACCENT_COLOR + '0d', borderColor: ACCENT_COLOR + '50' }}
-        >
-          <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: ACCENT_COLOR }}>
-            Professionnel ?
-          </p>
-          <p className="text-stone-800 font-semibold text-base mb-3 leading-snug">
-            Contactez archiQ pour connaître les modalités d'achat
-          </p>
-          <a
-            href="mailto:contact@archiq.fr"
-            className="inline-block px-5 py-2.5 rounded-xl text-white font-bold text-sm shadow-md transition-all hover:scale-[1.02] active:scale-[0.98]"
-            style={{ backgroundColor: ACCENT_COLOR }}
-          >
-            contact@archiq.fr
-          </a>
+        <div className="mb-6">
+          <ProContactCard />
         </div>
 
         {/* Encart promo */}
