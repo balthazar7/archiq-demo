@@ -12,7 +12,8 @@ export const BRAND = {
   subtitle: 'Le jeu de culture Architecturale',
   demoQuestionCount: 100,
   totalQuestionCount: 1200,
-  ululeUrl: 'https://fr.ulule.com/archiq/',
+  ululeUrl: 'https://fr.ulule.com/archiq/coming-soon/preview/?lang=fr&prev=/projects/225573/backoffice/prelaunch',
+  instagramUrl: 'https://www.instagram.com/archiq_culturearchi/?hl=fr',
   logoPrincipal,
   imagePromo,
 }
