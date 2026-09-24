@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Leaderboard } from './Leaderboard'
 import { PaperGamePromoCard } from './PaperGamePromoCard'
 import { ProContactCard } from './ProContactCard'
-import { getPlayerRank } from '../utils/leaderboard'
+import { getPlayerRank, retryPendingScore } from '../utils/leaderboard'
 import { ACCENT_COLOR } from '../branding'
 
 function ordinal(n) {
@@ -10,15 +10,29 @@ function ordinal(n) {
   return `${n}e`
 }
 
-export function ResultScreen({ playerName, agence, score, leaderboardKey, onPlayAgain, onHome }) {
+export function ResultScreen({
+  playerName, nom, agence, score,
+  scoreSaved = true, onScoreSaved,
+  leaderboardKey, onPlayAgain, onHome,
+}) {
+  const [retrying, setRetrying] = useState(false)
+
+  async function handleRetry() {
+    setRetrying(true)
+    const ok = await retryPendingScore({ playerName, nom, agence, score })
+    setRetrying(false)
+    if (ok) onScoreSaved?.()
+  }
+
   const medal   = score >= 10 ? '🏆' : score >= 6 ? '🥈' : score >= 3 ? '🥉' : '💪'
   const message = score >= 10 ? 'Impressionnant !' : score >= 6 ? 'Très bien joué !' : score >= 3 ? 'Pas mal !' : 'Continuez à vous entraîner !'
 
   const [rankData, setRankData] = useState({ rank: 1, total: 0 })
 
+  // Recalculé après l'enregistrement, pour que la partie en cours soit comptée
   useEffect(() => {
     getPlayerRank(score).then(setRankData)
-  }, [score])
+  }, [score, leaderboardKey])
 
   const { rank, total } = rankData
 
@@ -41,8 +55,28 @@ export function ResultScreen({ playerName, agence, score, leaderboardKey, onPlay
           </p>
           <p className="font-semibold text-lg mb-4" style={{ color: ACCENT_COLOR }}>{message}</p>
 
+          {/* Score non enregistré */}
+          {!scoreSaved && (
+            <div className="mt-4 px-4 py-3 rounded-2xl border border-amber-300 bg-amber-50 text-left">
+              <p className="text-sm font-bold text-amber-800 mb-1">
+                ⚠️ Score non enregistré
+              </p>
+              <p className="text-xs text-amber-700 mb-3">
+                La connexion au classement a échoué. Votre score est conservé et
+                sera renvoyé automatiquement à votre prochaine visite.
+              </p>
+              <button
+                onClick={handleRetry}
+                disabled={retrying}
+                className="w-full py-2 rounded-xl bg-amber-600 text-white text-sm font-bold hover:bg-amber-700 disabled:opacity-60 transition-colors"
+              >
+                {retrying ? 'Envoi…' : 'Réessayer maintenant'}
+              </button>
+            </div>
+          )}
+
           {/* Classement personnel */}
-          {total > 0 && (
+          {scoreSaved && total > 0 && (
             <div
               className="mt-4 px-4 py-3 rounded-2xl border"
               style={{ backgroundColor: ACCENT_COLOR + '0f', borderColor: ACCENT_COLOR + '30' }}

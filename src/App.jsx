@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { categories } from './data/categories'
 import { BRAND, FONTS, ACCENT_COLOR } from './branding'
 import { GameLayout } from './components/GameLayout'
@@ -8,7 +8,7 @@ import { GameScreen } from './components/GameScreen'
 import { ResultScreen } from './components/ResultScreen'
 import { PaperGamePromoCard } from './components/PaperGamePromoCard'
 import { ProContactCard } from './components/ProContactCard'
-import { addScore } from './utils/leaderboard'
+import { addScore, flushPendingScores } from './utils/leaderboard'
 
 export default function App() {
   const [phase, setPhase] = useState('home')
@@ -18,6 +18,12 @@ export default function App() {
   const [lastScore, setLastScore] = useState(0)
   const [leaderboardKey, setLeaderboardKey] = useState(0)
   const [gameKey, setGameKey] = useState(0)
+  const [scoreSaved, setScoreSaved] = useState(true)
+
+  // Réexpédie les scores restés en attente lors d'une session précédente
+  useEffect(() => {
+    flushPendingScores().then(() => setLeaderboardKey((k) => k + 1))
+  }, [])
 
   const handleNameSubmit = useCallback((name, nom, agence) => {
     setPlayerName(name)
@@ -33,9 +39,11 @@ export default function App() {
 
   const handleGameEnd = useCallback(async (score) => {
     setLastScore(score)
-    await addScore({ playerName, nom: playerNom, agence: playerAgence, score })
-    setLeaderboardKey((k) => k + 1)
+    setScoreSaved(true)
     setPhase('results')
+    const ok = await addScore({ playerName, nom: playerNom, agence: playerAgence, score })
+    setScoreSaved(ok)
+    setLeaderboardKey((k) => k + 1)
   }, [playerName, playerNom, playerAgence])
 
   const handlePlayAgain = useCallback(() => setPhase('naming'), [])
@@ -110,8 +118,14 @@ export default function App() {
       {phase === 'results' && (
         <ResultScreen
           playerName={playerName}
+          nom={playerNom}
           agence={playerAgence}
           score={lastScore}
+          scoreSaved={scoreSaved}
+          onScoreSaved={() => {
+            setScoreSaved(true)
+            setLeaderboardKey((k) => k + 1)
+          }}
           leaderboardKey={leaderboardKey}
           onPlayAgain={handlePlayAgain}
           onHome={handleHome}
