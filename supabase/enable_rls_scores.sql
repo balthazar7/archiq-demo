@@ -1,6 +1,7 @@
 -- ============================================================
 --  Sécurisation de la table `scores` (Row-Level Security)
---  À exécuter dans : Supabase > SQL Editor > New query > Run
+--  DÉJÀ APPLIQUÉ en production le 2026-09-24 (migration
+--  `enable_rls_scores`). Conservé ici pour référence / rejeu.
 -- ============================================================
 --  Contexte : RLS était désactivé, donc n'importe qui disposant
 --  de l'URL du projet et de la clé anon (publiée dans le bundle
@@ -41,7 +42,7 @@ create policy "scores_insert_public"
     and length(pseudo) between 1 and 40
     and (nom    is null or length(nom)    <= 80)
     and (agence is null or length(agence) <= 120)
-    and nb_parties = 1
+    and (nb_parties is null or nb_parties = 1)
   );
 
 -- 3. Aucune policy update/delete => ces opérations sont refusées
