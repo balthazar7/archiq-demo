@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "gen:answers": "node scripts/gen-answers.cjs",
-    "check:anticheat": "node scripts/check-score-parity.cjs && node scripts/check-replay.cjs ."
+    "check:anticheat": "node scripts/check-score-parity.cjs && node scripts/check-replay.cjs .",
+    "check:production": "node scripts/check-production.mjs ."
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.1",
