@@ -11,15 +11,16 @@ function ordinal(n) {
 }
 
 export function ResultScreen({
-  playerName, nom, agence, score,
+  playerName, nom, agence, score, payload,
   scoreSaved = true, onScoreSaved,
   leaderboardKey, onPlayAgain, onHome,
 }) {
   const [retrying, setRetrying] = useState(false)
 
   async function handleRetry() {
+    if (!payload) return
     setRetrying(true)
-    const ok = await retryPendingScore({ playerName, nom, agence, score })
+    const ok = await retryPendingScore(payload)
     setRetrying(false)
     if (ok) onScoreSaved?.()
   }

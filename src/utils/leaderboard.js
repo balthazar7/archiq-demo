@@ -61,85 +61,91 @@ function rememberPending(row) {
   writePending([...list.slice(-19), row])
 }
 
-/* ── Insertion ─────────────────────────────────────────────── */
-
-function buildRow({ playerName, nom, agence, score, nbReponses, dureeS }) {
-  return {
-    pseudo: playerName,
-    nom: nom || null,
-    agence: agence || null,
-    score,
-    nb_parties: 1,
-    nb_reponses: nbReponses ?? null,
-    duree_s: dureeS ?? null,
-  }
-}
-
-/* Les colonnes de télémétrie (nb_reponses, duree_s) peuvent ne pas
-   encore exister en base. Dans ce cas on réessaie sans elles, pour ne
-   jamais perdre un score à cause d'un déploiement en avance sur le SQL. */
-function isUnknownColumn(error) {
-  const txt = `${error.code || ''} ${error.message || ''}`
-  return /PGRST204|42703/.test(txt) || /nb_reponses|duree_s/.test(txt)
-}
-
-async function insertRow(row) {
-  const { error } = await supabase.from('scores').insert(row)
-  if (!error) return true
-
-  if (isUnknownColumn(error)) {
-    const { nb_reponses, duree_s, ...base } = row // eslint-disable-line no-unused-vars
-    const retry = await supabase.from('scores').insert(base)
-    if (!retry.error) return true
-    console.error('addScore error:', retry.error.message, retry.error.details)
-    return false
-  }
-
-  console.error('addScore error:', error.message, error.details, error.hint)
-  return false
-}
+/* ── Envoi de la partie ────────────────────────────────────── */
+/* Le score n'est plus envoyé : on transmet le détail de la partie,
+   et l'Edge Function `submit-score` recalcule le score elle-même.
+   L'insertion directe dans `scores` est révoquée côté base, donc
+   une requête forgée ne peut plus inscrire un score arbitraire.  */
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms))
 
+/** Ouvre une session de jeu. À appeler au démarrage de la partie. */
+export async function startGameSession() {
+  try {
+    const { data, error } = await supabase.functions.invoke('start-game', { body: {} })
+    if (error || !data?.sessionId) return null
+    return data.sessionId
+  } catch {
+    return null
+  }
+}
+
+async function postGame(payload) {
+  try {
+    const { data, error } = await supabase.functions.invoke('submit-score', {
+      body: payload,
+    })
+    if (!error && data?.ok) return { ok: true }
+
+    // 422 = partie refusée par le serveur, 409 = session déjà utilisée.
+    // Réessayer n'y changera rien : inutile de garder en attente.
+    const status = error?.context?.status
+    if (status === 422 || status === 409 || status === 403) {
+      console.error('partie refusée:', data?.detail || error?.message)
+      return { ok: false, definitif: true }
+    }
+    return { ok: false, definitif: false }
+  } catch {
+    return { ok: false, definitif: false }
+  }
+}
+
 /**
- * Enregistre un score, avec 3 tentatives espacées.
- * En cas d'échec le score est mis de côté dans le localStorage.
+ * Envoie la partie jouée. 3 tentatives espacées ; en cas d'échec
+ * réseau la partie est gardée en local et renvoyée plus tard
+ * (la session reste valable 24 h côté serveur).
  * @returns {Promise<boolean>} true si le score est bien en base.
  */
-export async function addScore(payload) {
-  const row = buildRow(payload)
+export async function submitGame(payload) {
+  // Si l'ouverture de session avait échoué, on tente ici en secours.
+  const body = payload.sessionId
+    ? payload
+    : { ...payload, sessionId: await startGameSession() }
+
+  if (!body.sessionId) {
+    rememberPending(body)
+    return false
+  }
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-    if (await insertRow(row)) return true
+    const res = await postGame(body)
+    if (res.ok) return true
+    if (res.definitif) return false
     if (attempt < MAX_ATTEMPTS) await wait(attempt * 800)
   }
 
-  rememberPending(row)
+  rememberPending(body)
   return false
 }
 
-/** Réessaie l'envoi d'un score précis (bouton « Réessayer »). */
+/** Réessaie l'envoi d'une partie précise (bouton « Réessayer »). */
 export async function retryPendingScore(payload) {
-  const row = buildRow(payload)
-  const ok = await insertRow(row)
-  if (ok) {
-    writePending(
-      readPending().filter(
-        (r) => !(r.pseudo === row.pseudo && r.score === row.score),
-      ),
-    )
+  const res = await postGame(payload)
+  if (res.ok) {
+    writePending(readPending().filter((r) => r.sessionId !== payload.sessionId))
   }
-  return ok
+  return res.ok
 }
 
-/** Réexpédie les scores restés en attente. Appelé au démarrage. */
+/** Réexpédie les parties restées en attente. Appelé au démarrage. */
 export async function flushPendingScores() {
   const list = readPending()
   if (list.length === 0) return
 
   const stillPending = []
-  for (const row of list) {
-    if (!(await insertRow(row))) stillPending.push(row)
+  for (const body of list) {
+    const res = await postGame(body)
+    if (!res.ok && !res.definitif) stillPending.push(body)
   }
   writePending(stillPending)
 }

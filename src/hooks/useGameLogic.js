@@ -17,8 +17,9 @@ export function useGameLogic(_playerName, onGameEnd) {
   const isActiveRef = useRef(true)
   const comboCountRef = useRef(0)
 
-  // Télémétrie anti-triche : combien de réponses, en combien de temps
-  const answerCountRef = useRef(0)
+  // Le détail de la partie : c'est lui qui part au serveur, pas le
+  // score. Le serveur rejoue cette liste et recalcule le score.
+  const replayRef = useRef([])
   const startedAtRef = useRef(Date.now())
 
   useEffect(() => {
@@ -27,10 +28,7 @@ export function useGameLogic(_playerName, onGameEnd) {
     if (timeLeft <= 0) {
       isActiveRef.current = false
       setIsActive(false)
-      onGameEnd(scoreRef.current, {
-        nbReponses: answerCountRef.current,
-        dureeS: Math.round((Date.now() - startedAtRef.current) / 1000),
-      })
+      onGameEnd(scoreRef.current, replayRef.current)
       return
     }
 
@@ -44,7 +42,11 @@ export function useGameLogic(_playerName, onGameEnd) {
 
       const question = questions[currentIndex % questions.length]
       const correct = isCorrect(question, selected)
-      answerCountRef.current += 1
+      replayRef.current.push({
+        q: question.id,
+        a: selected,
+        t: Date.now() - startedAtRef.current,
+      })
 
       if (correct) {
         const multiplier = 1 + comboCountRef.current * 0.15

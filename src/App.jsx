@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { categories } from './data/categories'
 import { BRAND, FONTS, ACCENT_COLOR } from './branding'
 import { GameLayout } from './components/GameLayout'
@@ -8,7 +8,7 @@ import { GameScreen } from './components/GameScreen'
 import { ResultScreen } from './components/ResultScreen'
 import { PaperGamePromoCard } from './components/PaperGamePromoCard'
 import { ProContactCard } from './components/ProContactCard'
-import { addScore, flushPendingScores } from './utils/leaderboard'
+import { submitGame, flushPendingScores, startGameSession } from './utils/leaderboard'
 
 export default function App() {
   const [phase, setPhase] = useState('home')
@@ -19,6 +19,8 @@ export default function App() {
   const [leaderboardKey, setLeaderboardKey] = useState(0)
   const [gameKey, setGameKey] = useState(0)
   const [scoreSaved, setScoreSaved] = useState(true)
+  const [lastPayload, setLastPayload] = useState(null)
+  const sessionIdRef = useRef(null)
 
   // Réexpédie les scores restés en attente lors d'une session précédente
   useEffect(() => {
@@ -37,14 +39,29 @@ export default function App() {
     setPhase('playing')
   }, [])
 
-  const handleGameEnd = useCallback(async (score, stats = {}) => {
+  // La session s'ouvre pendant le compte à rebours : le serveur sait
+  // ainsi qu'une partie a réellement commencé avant d'accepter un score.
+  const handleNameSubmitWithSession = useCallback((name, nom, agence) => {
+    sessionIdRef.current = null
+    startGameSession().then((id) => { sessionIdRef.current = id })
+    handleNameSubmit(name, nom, agence)
+  }, [handleNameSubmit])
+
+  const handleGameEnd = useCallback(async (score, replay = []) => {
     setLastScore(score)
     setScoreSaved(true)
     setPhase('results')
-    const ok = await addScore({
-      playerName, nom: playerNom, agence: playerAgence, score,
-      nbReponses: stats.nbReponses, dureeS: stats.dureeS,
-    })
+
+    const payload = {
+      sessionId: sessionIdRef.current,
+      pseudo: playerName,
+      nom: playerNom || null,
+      agence: playerAgence || null,
+      answers: replay,
+    }
+    setLastPayload(payload)
+
+    const ok = await submitGame(payload)
     setScoreSaved(ok)
     setLeaderboardKey((k) => k + 1)
   }, [playerName, playerNom, playerAgence])
@@ -104,7 +121,7 @@ export default function App() {
 
       {/* ── Saisie du prénom ── */}
       {phase === 'naming' && (
-        <PlayerNameInput onSubmit={handleNameSubmit} onBack={handleHome} />
+        <PlayerNameInput onSubmit={handleNameSubmitWithSession} onBack={handleHome} />
       )}
 
       {/* ── Compte à rebours ── */}
@@ -125,6 +142,7 @@ export default function App() {
           agence={playerAgence}
           score={lastScore}
           scoreSaved={scoreSaved}
+          payload={lastPayload}
           onScoreSaved={() => {
             setScoreSaved(true)
             setLeaderboardKey((k) => k + 1)
