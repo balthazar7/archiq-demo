@@ -87,10 +87,11 @@ async function postGame(payload) {
     })
     if (!error && data?.ok) return { ok: true }
 
-    // 422 = partie refusée par le serveur, 409 = session déjà utilisée.
-    // Réessayer n'y changera rien : inutile de garder en attente.
+    // 400 = requête malformée, 403 = session inconnue/expirée,
+    // 409 = session déjà utilisée, 422 = partie refusée.
+    // Aucun de ces cas ne s'arrangera en réessayant.
     const status = error?.context?.status
-    if (status === 422 || status === 409 || status === 403) {
+    if (status === 400 || status === 403 || status === 409 || status === 422) {
       console.error('partie refusée:', data?.detail || error?.message)
       return { ok: false, definitif: true }
     }
@@ -144,6 +145,12 @@ export async function flushPendingScores() {
 
   const stillPending = []
   for (const body of list) {
+    // Les entrées laissées par l'ancienne version du site ne
+    // contiennent pas le détail de la partie : le serveur ne peut
+    // pas les valider. On les abandonne plutôt que de les réessayer
+    // à chaque chargement.
+    if (!Array.isArray(body?.answers) || !body.sessionId) continue
+
     const res = await postGame(body)
     if (!res.ok && !res.definitif) stillPending.push(body)
   }

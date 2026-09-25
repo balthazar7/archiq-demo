@@ -1,25 +1,28 @@
 -- ============================================================
---  ÉTAPE 2 / 2 — Fermeture de la faille
---  À lancer UNIQUEMENT APRÈS que le nouveau site soit en ligne
---  et qu'une partie de test se soit bien enregistrée.
+--  ÉTAPE 2 / 2 — Fermeture de la faille  (feu vert donné)
 --  Supabase > SQL Editor > New query > Run
 -- ============================================================
+--  Vérifications faites avant de vous donner ce script :
+--    - archiq-demo.vercel.app sert bien le nouveau bundle
+--    - start-game et submit-score répondent en production
+--    - le chemin exact du navigateur (supabase-js invoke) marche
+--    - une partie truquée est refusée, une partie honnête passe
+--
 --  Ce script retire le droit d'insérer directement dans `scores`.
 --  C'est LUI qui ferme l'injection par curl.
 --
---  Si vous le lancez trop tôt (site pas encore déployé), les
---  parties ne s'enregistreront plus : l'ancien site insère en
---  direct. Elles seront gardées dans le navigateur des joueurs
---  et renvoyées ensuite, mais autant faire les choses dans
---  l'ordre.
---
---  Pour revenir en arrière en cas de souci, voir tout en bas.
+--  Retour arrière en bas du fichier si besoin.
 -- ============================================================
 
--- LE POINT CENTRAL : plus personne n'insère directement un score.
+-- 1. Ménage : lignes laissées par mes tests de sécurité
+delete from public.scores
+where pseudo in ('TEST-INJECTION', 'TEST-SECURITE', 'TEST-TRICHE',
+                 '__rls_test__', '__cheat__');
+
+-- 2. LE POINT CENTRAL : plus personne n'insère directement un score.
 drop policy if exists "scores_insert_public" on public.scores;
 
--- La lecture du classement reste publique.
+-- 3. La lecture du classement reste publique.
 drop policy if exists "scores_select_public" on public.scores;
 create policy "scores_select_public"
   on public.scores
@@ -40,11 +43,15 @@ from pg_policies
 where schemaname = 'public' and tablename in ('scores', 'game_sessions')
 order by tablename, policyname;
 
+-- Et le classement, pour contrôle
+select pseudo, score, nb_reponses, duree_s, created_at
+from public.scores
+order by score desc
+limit 5;
+
 -- ============================================================
 --  RETOUR ARRIÈRE (seulement si les scores ne passent plus)
 -- ============================================================
---  Décommenter et exécuter pour rouvrir l'insertion directe :
---
 --  create policy "scores_insert_public"
 --    on public.scores for insert to anon, authenticated
 --    with check (
