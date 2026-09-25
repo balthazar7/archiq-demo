@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { getAllDemoQuestions } from '../data/questions'
+import { getAllDemoQuestions, isCorrect } from '../data/questions'
 import { GAME_CONFIG } from '../config'
 
 export function useGameLogic(_playerName, onGameEnd) {
@@ -17,13 +17,20 @@ export function useGameLogic(_playerName, onGameEnd) {
   const isActiveRef = useRef(true)
   const comboCountRef = useRef(0)
 
+  // Télémétrie anti-triche : combien de réponses, en combien de temps
+  const answerCountRef = useRef(0)
+  const startedAtRef = useRef(Date.now())
+
   useEffect(() => {
     if (!isActive) return
 
     if (timeLeft <= 0) {
       isActiveRef.current = false
       setIsActive(false)
-      onGameEnd(scoreRef.current)
+      onGameEnd(scoreRef.current, {
+        nbReponses: answerCountRef.current,
+        dureeS: Math.round((Date.now() - startedAtRef.current) / 1000),
+      })
       return
     }
 
@@ -36,7 +43,8 @@ export function useGameLogic(_playerName, onGameEnd) {
       if (!isActiveRef.current || feedback !== null) return
 
       const question = questions[currentIndex % questions.length]
-      const correct = selected === question.correctAnswer
+      const correct = isCorrect(question, selected)
+      answerCountRef.current += 1
 
       if (correct) {
         const multiplier = 1 + comboCountRef.current * 0.15

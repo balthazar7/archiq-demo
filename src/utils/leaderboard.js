@@ -63,23 +63,40 @@ function rememberPending(row) {
 
 /* ── Insertion ─────────────────────────────────────────────── */
 
-function buildRow({ playerName, nom, agence, score }) {
+function buildRow({ playerName, nom, agence, score, nbReponses, dureeS }) {
   return {
     pseudo: playerName,
     nom: nom || null,
     agence: agence || null,
     score,
     nb_parties: 1,
+    nb_reponses: nbReponses ?? null,
+    duree_s: dureeS ?? null,
   }
+}
+
+/* Les colonnes de télémétrie (nb_reponses, duree_s) peuvent ne pas
+   encore exister en base. Dans ce cas on réessaie sans elles, pour ne
+   jamais perdre un score à cause d'un déploiement en avance sur le SQL. */
+function isUnknownColumn(error) {
+  const txt = `${error.code || ''} ${error.message || ''}`
+  return /PGRST204|42703/.test(txt) || /nb_reponses|duree_s/.test(txt)
 }
 
 async function insertRow(row) {
   const { error } = await supabase.from('scores').insert(row)
-  if (error) {
-    console.error('addScore error:', error.message, error.details, error.hint)
+  if (!error) return true
+
+  if (isUnknownColumn(error)) {
+    const { nb_reponses, duree_s, ...base } = row // eslint-disable-line no-unused-vars
+    const retry = await supabase.from('scores').insert(base)
+    if (!retry.error) return true
+    console.error('addScore error:', retry.error.message, retry.error.details)
     return false
   }
-  return true
+
+  console.error('addScore error:', error.message, error.details, error.hint)
+  return false
 }
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms))

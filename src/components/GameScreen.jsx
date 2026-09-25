@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useGameLogic } from '../hooks/useGameLogic'
 import { GAME_CONFIG } from '../config'
 import { categories } from '../data/categories'
+import { isCorrect } from '../data/questions'
 import { CATEGORY_META, ACCENT_COLOR } from '../branding'
 
 function shuffleArray(arr) {
@@ -39,11 +40,7 @@ export function GameScreen({ playerName, onGameEnd }) {
   const meta = currentQuestion.categoryId ? CATEGORY_META[currentQuestion.categoryId] : null
 
   const shuffledAnswers = useMemo(
-    () => shuffleArray([
-      currentQuestion.correctAnswer,
-      currentQuestion.wrongAnswers[0],
-      currentQuestion.wrongAnswers[1],
-    ]),
+    () => shuffleArray(currentQuestion.options),
     [currentQuestion.id], // eslint-disable-line
   )
 
@@ -132,14 +129,14 @@ export function GameScreen({ playerName, onGameEnd }) {
           {/* Boutons QCM */}
           <div className="flex flex-col gap-3">
             {shuffledAnswers.map((answer) => {
-              const isCorrect = answer === currentQuestion.correctAnswer
+              const isGood = isCorrect(currentQuestion, answer)
               const isSelected = answer === selectedAnswer
 
               let className = 'w-full px-5 py-4 rounded-xl border-2 text-left font-medium text-base transition-all flex items-center justify-between gap-3 '
 
               if (!feedback) {
                 className += 'bg-white border-stone-200 text-stone-800 hover:border-stone-400 hover:shadow-sm cursor-pointer'
-              } else if (isCorrect) {
+              } else if (isGood) {
                 className += 'bg-green-50 border-green-500 text-green-800 font-bold'
               } else if (isSelected) {
                 className += 'bg-red-50 border-red-400 text-red-800'
@@ -155,8 +152,8 @@ export function GameScreen({ playerName, onGameEnd }) {
                   className={className}
                 >
                   <span>{answer}</span>
-                  {feedback && isCorrect  && <span className="flex-shrink-0 text-green-600 font-bold">✓</span>}
-                  {feedback && isSelected && !isCorrect && <span className="flex-shrink-0 text-red-500 font-bold">✗</span>}
+                  {feedback && isGood  && <span className="flex-shrink-0 text-green-600 font-bold">✓</span>}
+                  {feedback && isSelected && !isGood && <span className="flex-shrink-0 text-red-500 font-bold">✗</span>}
                 </button>
               )
             })}
